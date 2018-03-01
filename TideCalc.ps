@@ -1,0 +1,207 @@
+%
+%	Tidecalc.ps - Prints a tide calculator !
+%	----------------------------------------
+%
+%	This may not be the most optimal way of doing this, but I
+%	do understand it !
+%
+%	M.D. Waller
+%
+%
+/innerdiam 2 def	%Diameter of the inner disc
+/innertxtdiam 1.5 def	%Diameter of the inner text
+/outerdiam 2.5 def	%Diameter of the outer disc
+%
+%	Define an array of text for the inner disc (anti-clockwise)
+%
+/innertxt
+
+[	(H.W.)
+	(-1)
+	(-2)
+	(-3)
+	(-4)
+	(-5)
+	(+/-6)
+	(+5)
+	(+4)
+	(+3)
+	(+2)
+	(+1)
+] def
+%
+%	Define an array of text for the outer disc (anti-clockwise)
+%
+/outertxt
+
+[	(00:00 12:00)
+	(11:00 23:00)
+	(10:00 22:00)
+	(09:00 21:00)
+	(08:00 20:00)
+	(07:00 19:00)
+	(06:00 18:00)
+	(05:00 17:00)
+	(04:00 16:00)
+	(03:00 15:00)
+	(02:00 14:00)
+	(01:00 13:00)
+] def
+%
+/inch
+%
+%	This routine is called to convert a number of inches into
+%	a number of points. It simply multiplies by 72 !
+%
+	{
+	72 mul
+	} def
+%
+/drawinner
+%
+%	This routine is called to draw the inner disc.
+%
+	{
+%
+%	Start off by drawing the outer circle and a small dot for
+%	the centre of the disc.
+%
+	0 0 innerdiam inch 0 360 arc stroke	%Draw the outside circle
+	0 0 1 0 360 arc stroke			%Draw in the centre
+%
+%	Now draw the High Tide marker, for the moment it is just
+%	a single line to the edge of the disc.
+%
+	0 innerdiam inch 0.2 inch sub moveto	%Move to almost the edge
+	0 innerdiam inch lineto stroke	 	%Draw a line to the edge
+%
+%	Next, save the current graphics state and rotate the image by
+%	15 degrees before the hour divide lines are drawn on to the
+%	disc.
+%
+	gsave					%Save the current state
+	15 rotate				%Rotate the image by 15 degrees
+	0 30 360 				%For the complete circle
+	    {
+	    pop					%Junk the loop variable
+	    newpath				%Create a new path
+	    0 0 moveto				%Move to the centre of the circle
+	    0 innerdiam inch lineto		%Move to the edge of the circle
+	    stroke				%Draw the line
+	    30 rotate				%Rotate the image by 30 degrees
+	    } for
+	grestore				%Restore the state
+%
+%	All that needs to be done now is to put the H.W. +/- hours in.
+%
+	0 1 11					%For all the text items we have
+	    {
+	    /idx exch def			%Pick up the loop count
+	    /txt				%Variable to put the text into
+	    innertxt				%Stack the inner text items
+	    idx					%Stack the index
+	    get	def				%Get the text item and save it
+	    0					%Prepare to do a moveto
+	    txt stringwidth pop			%How wide is the text
+	    2 div				%Divide that by two
+	    sub					%Set the first argument to move
+	    innertxtdiam inch moveto		%Move to where the text will go
+	    txt show				%Show the text
+	    30 rotate				%Rotate the image by 30 degrees
+	    } for			
+	} def
+%
+/drawouter
+%
+%	This routine is called to draw the outer disc.
+%
+	{
+	0 0 outerdiam inch 0 360 arc stroke	%Draw the outside circle
+	0 0 1 0 360 arc stroke			%Draw in the centre
+	gsave					%Save the current state
+	0 1 11					%For all the text we have to print
+	    {
+%
+%	The following code picks up the text from the outer disc legend
+%	and save the text height and the text width.
+%
+	    /idx exch def			%Pick up the ext index
+	    /txt				%Variable to put the text into
+	    outertxt				%Stack the outer text items
+	    idx					%Stack the index
+	    get	def				%Get the text item and save it
+	    txt stringwidth			%Stack the metrics of the text
+	    /th exch def			%Pick up the text height
+	    /tw exch def			%Pick up the text width
+%
+%	Once we have the text metrics, move to the outside of the disc
+%	and draw the text itself.
+%
+	    0 tw 2 div sub			%Specify the X movement
+	    outerdiam inch 0.3 inch sub 	%Specify the Y movement
+	    moveto				%Move to it
+	    txt show				%Show the text
+%
+%	Put in the tick marks
+%
+	    newpath				%Create a new path
+	    0 1 inch moveto			%Move to the centre of the circle
+	    0					%Move to the edge of the circle
+	    outerdiam inch 0.4 inch sub th sub 0.2 inch sub lineto
+						%Specify the Y movement
+		 stroke				%Draw the line
+	    newpath				%Start off a new path
+	    0 outerdiam inch 0.2 inch sub moveto
+	    0 outerdiam inch lineto
+	 	stroke				%Put in the tick mark
+	    30 rotate				%Rotate the image by 30 degrees
+	    } for
+	grestore				%Restore the state
+	gsave					%Save the current state once more
+	0 5 355					%Put in the 10 min tick marks
+	    {
+	    pop					%Junk the looping variable
+	    newpath
+	    0 innerdiam inch moveto		%Move up
+	    0 innerdiam inch 0.2 inch add lineto
+	    stroke
+	    5 rotate
+	    } for
+	0 15 345				%Put in the 30 min tick marks
+	    {
+	    pop					%Junk the looping variable
+	    newpath
+	    0 innerdiam inch moveto		%Move up
+	    0 innerdiam inch 0.4 inch add lineto
+	    stroke
+	    15 rotate
+	    } for
+        grestore				%Restore the state
+	} def
+%
+/main
+%
+%	This routine kicks off all the processing.
+%
+	{
+	/Times-Roman findfont			%Pick up the font
+	10 scalefont				%Set the point size to 10
+	setfont					%Use it !
+%
+	gsave
+	innerdiam inch 1 inch add		%Move across the page
+	innerdiam inch 1 inch add		%Move up the page
+	    translate				%Set our translation point
+	drawinner				%Draw the inner disc
+	grestore
+%
+	gsave
+	outerdiam inch 1 inch add		%Move across the page
+	innerdiam inch 2 mul 2 inch add		%Move up the page
+	outerdiam inch add			%And a little more
+	    translate				%Set our translation point
+	drawouter				%Draw the outer disc
+	} def
+%
+main
+showpage
